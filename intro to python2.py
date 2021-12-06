@@ -1,84 +1,112 @@
-import math as m
-#Lists
-#These are the most widely used datatypes in python
-#It can store multiple data types
-x=[1,2,3,"hello world","hi"]#slicing operation same as strings can be performed on lists also!
-print(x)
-#Lists  are immutable hence we can change a particular value of list at a particular place.
-print(x[0])
-x[0]='25'
-print(x)
-x[2:3]="Sooraj"#we have given a string hence the value given will be stored as single characters in the list at different locations for different characters
-print(x)
-x[4:5]=["Sooraj"]#This is a list hence it will be stored at only one location as a whole and not divided into characters.
-x.append("new")#This will add the value at the end,you can also append list in a list as we have done in previous case of adding list to a list
-print(x)
-print(x[4])
-x.extend([1,2,3])#Extend will unpack the list and adds each element to the end of the list, we can even use + operator instead of using extend
-x=x+[4,5,6 ]
-print(x)
-x.insert(2,"another")#Insert will add a element at a particular location this will increase the size of the list
-print(x)
-x.pop()#this will remove the element from the end,pop can also take arguments which will remove the value given the location is the argument
-x.pop(1)#This will remove the element at index 1
-print(x)
-x.remove("hello world")#This will remove the value "hello world" from the list
-print(x)#If you try to remove the element which is not in list then it will give us error
-print(list(range(10)))#This will print all values from 0 to 9 in the form of a list
-for i in range(10):
-    print(i)#This prints each values in a new line characters
-print("We have come outside the loop")
-y=[a for a in range(10)]
-print(y)#This prints the given data in the form of a single list, this method is known as list comprehension
-y.reverse()#This will reverse the list without any sorting
-print(y)
-y.sort()#This will automatically sort the list in the ascending order
-print(y)
-y.sort(reverse=True)#This prints the values of the list in descending order
-print(y)
-#TWO DIMENSIONAL LISTS
-number_sets=[[1,2,3,4],[5,6,7,8],[9,10,11,12,[21,30,35,[2,3,4,5]]]]
-print(number_sets)#This prints the whole list
-print(number_sets[2])#This prints value at specified index
-print(number_sets[2][4])#This will print element at index and elements mentioned in sublist index
-#Same operations performed on lists can be done on sublists
-cities=['delhi','hyderabad','pune','chennai']
-for city in cities:
-    print(len(city))#This prints length of each element in list.
-#List comprehension using for loop
-#Method1
-z=range(8)
-z_mod_2=[]
-for a in z:
-    z_mod_2.append(a%2)
-print(z_mod_2)#This is one method of adding values to an empty list using iteration
-z_mod_1=[a%2 for a in z]#This is another way of entering values into a list using iteration
-print(z_mod_1)
-x_is2=[m.log(a) for a in z if a%2 !=0]#The loop will execute only for values of a%2!=0 if a%2==0 for loop will not execute and data will not be added to the list
-print(x_is2)
+import numpy as np
+from matplotlib import pyplot as plt
+
+
+###########______Welcome____##########
+
+print("\n_____  Analysis of Cantilever Beam  _____\n")
+print('\n|               P\n|_____\u2193\n|       L')
+
+
+############-----------Data--------##########
+L = float(input("\nEnter the length of the beam 'L' in mm: "))
+P = float(input("Enter the magnitude of force 'P' in N: "))
+E = float(input("Enter the modulous of elasticity 'E' of material in N/mm^2 :"))
+print("\nRectangular Beam\n")
+print("   Width\n ____\n|        |\n|        |\n|        |\
+\n|        | Depth\n|        |\n|        |\n|        |\
+\n|____|\n")
+
+b = float(input("Enter the width of the beam in mm: "))
+d = float(input("Enter the depth of the beam in mm: "))
+
+print('\n|               P\n|_ _ _ _ _ _ _ _\u2193\n\
+|\n  Number of pieces  \n    ')
+
+mesh = int(input("Enter the number of mesh elements: "))
+
+el = float(L/mesh)
+
+########------------Matrix formulation--------##########
+Force = np.array([[-P],[0]])
+F = np.zeros(2*mesh+2)
+F[2*mesh:1+2*mesh] = F[2*mesh:1+2*mesh]+Force[0]
+
+print("\nForce Matrix :")
+for i in F:
+    print(i)
 
 
 
+kb = ((E*b*(d*3))/(12(el**3)))*np.array([[12,6*el,-12,6*el],
+                                [6*el,4*el*el,-6*el,2*el*el],
+              [-12,-6*el,12,-6*el],[6*el,2*el*el,-6*el,4*el*el]])
+
+print("\nEliment stiffness matrix K = \n",kb)
 
 
 
+K = np.zeros((2+2*mesh,2+2*mesh))
 
 
+for i in range(4):
+    for j in range(4):
+        K[i,j]=kb[i,j]
+
+##print(K)
+
+###############-----------Assembly of stiffness matrix-----#########
+
+k=1
+while k<=2*mesh-2:
+    p=k
+    i=1
+    while i<=4:
+        j=1
+        q=k
+        while j<=4:
+            K[p+1,q+1]=K[p+1,q+1]+kb[i-1,j-1]
+            j=j+1
+            q=q+1
+        i=i+1
+        p=p+1
+    k=k+2
+
+##print(K)
+##np.savetxt('stiffnessmat.txt',K)
+
+###############----------Boundry condition-------------##########
 
 
+Kinv = np.linalg.inv(K[2:2+2*mesh,2:2+2*mesh])
+##print(Kinv)
+
+D = np.zeros((2+2*mesh))
+D[2:2+2*mesh] = np.dot(Kinv,F[2:2+2*mesh])
+
+print("\ndisp matrix : \n")
+for i in D:
+    print(i)
 
 
+#########---------------Ploting------------$$$$$$$$$$$$%%%%
 
+x = np.arange(0,L+el,el)
+y = np.zeros((mesh+1))
 
+p=0
+for i in range(2+2*mesh):
+    if i%2==0:
+        y[p]=D[i]
+        p=p+1
 
+np.savetxt(""+str(mesh)+"Element X.txt",x,delimiter=",")
+np.savetxt(""+str(mesh)+"Element Y.txt",y,delimiter=",")
 
-
-
-
-
-
-
-
-
-
-
+plt.plot(x,y,"-r")
+plt.grid()
+plt.title("Diflection of cantilever beam with "+str(mesh)+" elements")
+plt.xlabel("Length of Beam")
+plt.ylabel("Diflection")
+plt.savefig(""+str(mesh)+" Element.png")
+plt.show()
