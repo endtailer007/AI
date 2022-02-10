@@ -18,7 +18,12 @@ def cube(y):
 z=lambda a: a*a*a#we can use lambda functions instead of simple function, we need not define anything or calling, it is also called as anonymous function
 print(z(4))
 print(cube(5))
-
+#We use expection block to bypass exceptions in a program
+try:
+    age=int(input("Enter your age: "))
+except:
+    age="There was some error while processing your information."#This will be displayed when we print the age if the user enters any input other than the integers/
+print(age)
 
 
 
